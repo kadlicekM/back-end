@@ -1,0 +1,27 @@
+615dfec5ae91df0007bc31d1:
+  device:
+    field: device
+    path: [data, body]
+  values:
+    - field: forecast_temperature # - znamena prvok a každý prvok je tu objekt
+      path: [data, body]
+    - field: outdoor_temperature
+      path: [data, body]
+    - field: road_temperature
+      path: [data, body]
+    # {field: time, path: [body, data]}
+
+    # - field: pressure
+    #   path: [working, weather, body, main]
+    # - field: name
+    #   path: [working, weather, body]
+  timestamp:
+    field: time
+    path: [data, body]
+  types:
+    forecast_temperature: 3
+    outdoor_temperature: 2
+    road_temperature: 1
+    # time: 4
+    # pressure: 5
+    # name: 6
