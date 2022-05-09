@@ -1,3 +1,4 @@
+# from crypt import methods
 from socketserver import ThreadingMixIn
 from typing import Dict
 # endpointy na prácu s dátami
@@ -12,4 +13,5 @@ def add_data():
     body = request.get_json()
     result: Dict = insert_data(body)
     return jsonify(result)
+
 

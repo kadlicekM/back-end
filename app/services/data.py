@@ -10,7 +10,7 @@ from flask_bcrypt import generate_password_hash
 from app import Session, session
 import yaml 
 from copy import deepcopy
-from app.dtos.measurement import Field, Measurement
+from app.model.dtos.measurement import Field, Measurement
 
 # def auth_user(user: User):
 def insert_data(body: Dict):
@@ -81,12 +81,5 @@ def insert_data(body: Dict):
     return {'ok': True, 'message': 'Data inserted to database'}
 
 
-def create_user(user: User):
-    pwd_hash = generate_password_hash(user.password).decode('utf-8')
-    
-    if pwd_hash:
-        user.password = pwd_hash
-    with Session.begin() as session:
-        session.add(user)
-        # session.commit()
+
     

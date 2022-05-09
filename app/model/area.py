@@ -6,16 +6,17 @@ from sqlalchemy.orm import Session, sessionmaker, registry
 from sqlalchemy import VARCHAR, Table, Column, Integer, Float, String, ForeignKey, create_engine, select, update, delete
 from app import Base
 
-class Sector(Base):
-    __tablename__ = 'sector_table'
+class Area(Base):
+    __tablename__ = 'area_table'
     id = Column(Integer, primary_key=True)
-    description = Column(VARCHAR)
-    area_id = Column(Integer)
+    description = Column(String(40))
+    user_id = Column(Integer)
     #sensor = Column(String(45))
 
     @staticmethod
-    def serialize_sector(sector):
-        return {"description":sector.description, "area_id": sector.area_id}
-    
+    def serialize_area(area):
+        return {"description":area.description, "id": area.id}
 
-    
+    @staticmethod
+    def customize_area(area):
+        return {"description":area.description}

@@ -1,0 +1,8 @@
+port: 587 # For starttls
+host: smtp.gmail.com
+sender: mkapp.server@gmail.com
+# receiver_email: zyx@gmail.com
+receiver_email: matej.kadlicek1@gmail.com
+password: Diplomovapraca123
+subject: Confirmation of registration 1
+message: "<h1>Hi there, from script</h1>"

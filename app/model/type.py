@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, sessionmaker, registry
 from sqlalchemy import VARCHAR, Table, Column, Integer, Float, String, ForeignKey, create_engine, select, update, delete
 from app import Base
 
-class Sensor(Base):
+class Type(Base):
     __tablename__ = 'type_table'
     id = Column(Integer, primary_key=True)
     type = Column(Integer)

@@ -22,6 +22,6 @@ jwt = JWTManager(app)
 engine = create_engine(
     "mysql+pymysql://root:xsed2kj8@localhost:3306/diplomka_skuska")
 
-Session = sessionmaker(bind=engine, future=True)
+Session = sessionmaker(bind=engine, future=True,expire_on_commit=False)
 session = Session()
 Base = declarative_base()
