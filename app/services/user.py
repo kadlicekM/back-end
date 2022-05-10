@@ -5,6 +5,7 @@ from flask_bcrypt import check_password_hash
 from flask_bcrypt import generate_password_hash
 from app import Session, session
 from utils.user import send_registration_confirmed_mail
+import uuid
 
 
 # def auth_user(user: User):
@@ -33,6 +34,7 @@ def sign_up_user(request_data: Dict):
     name = request_data["name"]
     surname = request_data["surname"]
     email = request_data["email"]
+    
     with session.begin():
         user: User = session.query(User).filter(User.login == login).first()
     if user: #Todo check if user is without error if out of context manager scope
@@ -40,8 +42,12 @@ def sign_up_user(request_data: Dict):
     pwd_hash = generate_password_hash(password).decode('utf-8')
     if not pwd_hash:
         return {'status': False, 'message': f'Error occured while creating new user'}, 500
-    user_to_add = User(login=login, password=pwd_hash, name=name, surname= surname,  active=False, role= "user", email=email)
-    with  session:
+    user_token = uuid.uuid4()
+    user_to_add = User(user_token=user_token, login=login, password=pwd_hash, 
+                       name=name, surname= surname, 
+                       active=False, role= "user", 
+                       email=email)
+    with session:
         session.add(user_to_add) 
         session.commit()
         session.close()

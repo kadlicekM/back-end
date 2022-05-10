@@ -17,8 +17,6 @@ class User(Base):
     role = Column(String(20))
     user_token = Column(String(100))
     
-    
-    
     # name = Column(String(30))
 
     @staticmethod

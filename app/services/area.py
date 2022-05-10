@@ -15,7 +15,7 @@ def get_all_areas():
 #TO-DO get to know if user has yet area with that name .. 
 # + two different users MAY have SAME area name(?)
 def add_area(requested_data):
-    user_id = requested_data["user_id"]
+    # user_id = requested_data["user_id"]
     description = requested_data["description"]
     # with Session.begin() as session:
     #     area_to_compare:Dict= session.query(Area.user_id==user_id).all()
