@@ -13,7 +13,8 @@ def get_sectors():
     result, status_code = get_areas_sectors()
     return jsonify(result), status_code
 
-@app.route("/api/sector/addSector", methods=["POST"])
+
+@app.route("/api/sector/add", methods=["POST"])
 @jwt_required()
 def adding_sector():
     body=request.get_json()

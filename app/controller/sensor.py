@@ -13,7 +13,7 @@ def delete_data():
     result:Dict= remove_sensor(body)
     return jsonify(result)
 
-@app.route("/api/sector/addSector", methods=["POST"])
+@app.route("/api/sensor/add", methods=["POST"])
 @jwt_required()
 def adding_sensor():
     body=request.get_json()

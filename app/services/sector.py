@@ -1,3 +1,4 @@
+from typing import Dict
 from app import Session, session
 from app.model.sector import Sector
 
@@ -12,11 +13,11 @@ def get_areas_sectors():
 
 #TO-DO get to know if user has yet sector with that name ... 
 # + two different users MAY have SAME sector name(?)
-def add_sector(requested_data):
-    area_id= requested_data["area_id"]
-    description= requested_data["description"]
+def add_sector(request_data: Dict):
+    area_id= request_data["area_id"]
+    description= request_data["description"]
 
-    record: Sector = Sector(description=description, area_id=area_id)
+    sector: Sector = Sector(description=description, area_id=area_id)
     with Session.begin() as session:
-        session.add(record)
-    return {"ok":True, "message":"Area inserted"}
+        session.add(sector)
+    return {"ok":True, "message":"Sector inserted", "id": sector.id}, 201

@@ -2,7 +2,7 @@ from app.model.sensor import Sensor
 from app import Session
 from typing import Dict, List
 
-from app.model.type import Type
+from app.model.sensor_type import SensorType
 
 def remove_sensor (body:Dict):
     sensor_id = body["sensorID"]
@@ -22,25 +22,32 @@ def remove_sensor (body:Dict):
 
 #TO-DO think about what(paramaters) we need to add and to where(table)
 # doesnt work  
-def add_sensor(requested_data):
-    sector_id= requested_data["sensor_id"]
-    sensor= requested_data["sensor"]
-    note= requested_data["note"]
-    unit= requested_data["unit"]
-    min_value= requested_data["min_value"]
-    max_value= requested_data["max_value"]
-    sensor_id= requested_data["sensor_id"]
-    
+def add_sensor(request_data: Dict):
+    sector_id= request_data["sector_id"]
+    sensor= request_data["sensor"]
+    sensor_types = request_data["sensor_types"]
 
-    record_for_sensor_table: Sensor = Sensor(sector_id=sector_id, sensor=sensor)
-    record_for_type_table: Type = Type(note=note, unit=unit, min_value=min_value, max_value=max_value, sensor_id=sensor_id)
+    sensor_to_add: Sensor = Sensor(sector_id=sector_id, sensor=sensor)
+    # record_for_type_table: Type = Type(note=note, unit=unit, min_value=min_value, max_value=max_value, sensor_id=sensor_id)
 
     with Session.begin() as session:
-        session.add(record_for_sensor_table)
-        session.add(record_for_type_table)
-
-    return {"ok":True, "message":"Sensor was added"}
-
-  
-
+        session.add(sensor_to_add)
+    if not sensor_to_add.id:
+        return {"ok":False, "message":"Sensor: {sensor} could not be inserted."}, 500
     
+    sensor_types_to_add: List[SensorType] = []
+    for type_ in sensor_types:
+        note= type_["note"]
+        unit= type_["unit"]
+        min_value= type_["min_value"]
+        max_value= type_["max_value"]
+        sensor_type= SensorType(note=note, unit=unit, min_value=min_value, max_value=max_value, sensor_id=sensor_to_add.id)
+        sensor_types_to_add.append(sensor_type)
+    with Session.begin() as session:
+        session.add_all(sensor_types_to_add)
+    if sensor_types_to_add:
+        return {"ok":True, "id": sensor_to_add.id, "message": "Sensor: {} with all it's types: {} successfully inserted.".format(sensor, [e['note'] for e in sensor_types ])}, 200
+
+
+def get_all_from_sector(sector_id: int):
+    pass

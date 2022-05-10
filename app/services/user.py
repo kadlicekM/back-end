@@ -4,7 +4,7 @@ from flask_bcrypt import check_password_hash
 #from sqlalchemy.sql import text
 from flask_bcrypt import generate_password_hash
 from app import Session, session
-from utils.user import send_registration_confirmed_mail
+from app.utils.user import send_confirmation_mail
 import uuid
 
 
@@ -23,10 +23,13 @@ def auth_user(login: str, password: str):
         if user:
             ok = check_password_hash(user.password, password)   # bcrypt function to compare passwords
             if ok:
+                if not user.active:
+                    return {'logged': False, 'message': 'Your account is not activated yet'}, 403
                 user_serialized = User.serialize_token_payload(user)    #serialize_login 
-                return {'logged': True, 'user': user_serialized}, 200
+                return {'logged': True, 'user': user_serialized, 'uid': user.uid}, 200
             return {'logged': False, 'message': 'Wrong credentials'}, 401
         return {'logged': False, 'message': f'User {login} does not exists'}, 401
+
 
 def sign_up_user(request_data: Dict):
     login = request_data['login'] 
@@ -42,8 +45,13 @@ def sign_up_user(request_data: Dict):
     pwd_hash = generate_password_hash(password).decode('utf-8')
     if not pwd_hash:
         return {'status': False, 'message': f'Error occured while creating new user'}, 500
-    user_token = uuid.uuid4()
-    user_to_add = User(user_token=user_token, login=login, password=pwd_hash, 
+    while True:
+        uid = uuid.uuid4()
+        with session.begin():
+            user: User = session.query(User).filter(User.uid == uid).first()
+        if not user:
+            break
+    user_to_add = User(uid=uid, login=login, password=pwd_hash, 
                        name=name, surname= surname, 
                        active=False, role= "user", 
                        email=email)
@@ -58,24 +66,25 @@ def sign_up_user(request_data: Dict):
         
 
 
-def confirm_users_registration(requested_data: Dict):
-    user_id=requested_data["used_id"]
+def change_users_active_state(user_id: int, is_active: bool):
+    print(is_active)
     with session.begin():
         user: User = session.query(User).filter(User.id == user_id).first()
     if not user:
         return {'status': False, 'message': f'User could not be found'}, 404
     
     with session.begin():
-        user.active = True
+        user.active = is_active
         # session.add(user) 
     if user:
         # Todo send user an informational email
         if not user.email:
             return {'status': True, 'message': f'Confirmed registration for user with id: {user_id}, but no email found'}, 200
-        is_sent = send_registration_confirmed_mail(user.email)
-        email_msg = 'Confirmation mail could not be sent.' if not is_sent else ''
-        return {'status': True, 'message': f'Confirmed registration for user with id: {user_id}. {email_msg}'}, 200
-    return {'status': False, 'message': f'Could not confirm registration for user with id: {user_id}'}, 500
+        
+        is_sent = send_confirmation_mail(user.email, is_active)
+        email_msg = 'Confirmation mail could not be sent.' if not is_sent else '{} mail sent to: {}'.format('Confirmation' if is_active else 'Cancelation', user.email)
+        return {'status': True, 'message': '{} registration for user with id: {}. {}'.format('Confirmed' if is_active else 'Canceled', user_id, email_msg)}, 200
+    return {'status': False, 'message': 'Could not {} registration for user with id: {}'.format('confirm' if is_active else 'cancel', user_id)}, 500
 
 
 def get_all_pending_users():

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, sessionmaker, registry
 from sqlalchemy import VARCHAR, Table, Column, Integer, Float, String, ForeignKey, create_engine, select, update, delete
 from app import Base
 
-class Type(Base):
+class SensorType(Base):
     __tablename__ = 'type_table'
     id = Column(Integer, primary_key=True)
     type = Column(Integer)
@@ -14,5 +14,6 @@ class Type(Base):
     unit = Column(VARCHAR(20))
     min_value = Column(Integer)
     max_value = Column(Integer)
+    sensor_id = Column(Integer)
     
 
