@@ -9,7 +9,6 @@ from app import Base
 class SensorType(Base):
     __tablename__ = 'type_table'
     id = Column(Integer, primary_key=True)
-    type = Column(Integer)
     note = Column(VARCHAR(45))
     unit = Column(VARCHAR(20))
     min_value = Column(Integer)
@@ -17,3 +16,10 @@ class SensorType(Base):
     sensor_id = Column(Integer)
     
 
+    @staticmethod
+    def serialize(sensor_type):
+        return {'id': sensor_type.id, 
+                'note': sensor_type.note,
+                "unit": sensor_type.unit,
+                "max_value": sensor_type.max_value,
+                "min_value": sensor_type.min_value}

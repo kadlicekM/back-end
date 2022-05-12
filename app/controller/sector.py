@@ -20,3 +20,4 @@ def adding_sector():
     body=request.get_json()
     result, status_code = add_sector(body)
     return jsonify(result), status_code
+

@@ -12,7 +12,7 @@ def auth():
     is_logged = result['logged']
     uid = result['uid'] if 'uid' in result else None
     if 'user' in result:
-        access_token = create_access_token(result['user'])
+        access_token = create_access_token(result['user']) #create acces token with (login user_id, uid, active)
         refresh_token = create_refresh_token(result['user'])
         return jsonify({'logged': is_logged, 'uid': uid, 'access_token': access_token, 'refresh_token': refresh_token}), status_code
     return jsonify({'logged': is_logged, 'message': result['message']}), status_code

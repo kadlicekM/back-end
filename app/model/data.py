@@ -9,9 +9,13 @@ from app import Base
 class Data(Base):
     __tablename__ = 'data_table'
     id = Column(Integer, primary_key=True)
-    sensor_id = Column(Integer)
     value = Column(String(50))
     timestamp = Column(Integer)
     type_id = Column(Integer)
+
+
+    def serialize(data):
+        # return {'id': data.id, 'value': data.value, 'timestamp': data.timestamp, 'note': note, 'unit': unit, 'max': max, 'min': min}
+        return {'value': data.value, 'timestamp': data.timestamp}
 
 

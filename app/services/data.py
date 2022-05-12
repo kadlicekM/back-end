@@ -1,16 +1,19 @@
 from cmath import log
-from datetime import datetime as dt
+from datetime import timedelta, datetime as dt
+from operator import and_
 from typing import Dict, List
 from app.model.data import Data
 from app.model.sensor import Sensor
+from app.model.sensor_type import SensorType
 from app.model.user import User
 from flask_bcrypt import check_password_hash
 from sqlalchemy.sql import text
 from flask_bcrypt import generate_password_hash
 from app import Session, session
+from dateutil.parser import parse
 import yaml 
 from copy import deepcopy
-from app.model.dtos.measurement import Field, Measurement
+from app.model.dtos.measurement import ChartValue, Field, Measurement
 
 # def auth_user(user: User):
 def insert_data(body: Dict):
@@ -58,7 +61,7 @@ def insert_data(body: Dict):
     
     device_id = body.get(device_field, None) #ID from received message 
     if not device_id:
-        return {'ok': False, 'message': 'Device not found in recieved data'}
+        return {'ok': False, 'message': 'Device not found in recieved data'}, 404
 
     print(device_id)
     # --------------------------------
@@ -67,19 +70,53 @@ def insert_data(body: Dict):
     
 
     with Session.begin() as session:
-        sensor: Sensor = session.query(Sensor).filter(Sensor.sensor == device_id).first()
-        if not sensor:
-            return {'ok': False, 'message': 'Device not found in database'}
-        sensor_id = sensor.id
+    #     sensor: Sensor = session.query(Sensor).filter(Sensor.id == device_id).first()
+    #     if not sensor:
+    #         return {'ok': False, 'message': 'Device not found in database'}
+    #     sensor_id = sensor.id
         measurements: List[Data] = []
-        for measurement in values:
-            print(measurement.fieldname, measurement.value)
-            data: Data = Data(sensor_id=sensor_id, value=str(measurement.value), timestamp=timestamp, type_id=measurement.type_id)
-            measurements.append(data)
+        for i in range(10):
+            for j in range(24):
+                tm = dt.now().replace(hour=j, minute=0, second=0, microsecond=0) - timedelta(days=i)
+                timestmp = tm.timestamp()
+                for measurement in values:
+                    print(measurement.fieldname, measurement.value)
+                    data: Data = Data(value=str(measurement.value), timestamp=timestmp, type_id=measurement.type_id)
+                    measurements.append(data)
         session.add_all(measurements)
 
-    return {'ok': True, 'message': 'Data inserted to database'}
+    return {'ok': True, 'message': 'Data inserted to database'}, 200
 
 
 
+def get_chart_data(request_data: Dict):
+    # area_id = request_data['area_id']
+    # sector_id = request_data['sector_id']
+    range_from = request_data['from']
+    range_to = request_data['to']
+    timestamp_from = parse(range_from).timestamp()
+    timestamp_to = parse(range_to).timestamp()
+    # interval = request_data['interval'] # enum(hh, dd, w, y)
+    sensor_id = request_data['sensor_id']
+    sensor_type_ids = request_data['sensor_type_ids'] if 'sensor_type_ids' in request_data and isinstance(request_data['sensor_type_ids'], list) and len(request_data['sensor_type_ids']) > 0 else None
     
+    with Session.begin() as session:
+        sensor_types: List[SensorType] = session.query(SensorType).filter(SensorType.sensor_id == sensor_id if not sensor_type_ids else SensorType.id.in_(sensor_type_ids)).all()
+    if not sensor_types or len(sensor_types) == 0:
+        return {'status': False, 'message': 'No sensor types found for selected sensor!', 'data': []}, 404
+    # sensor_type_ids = [st.id for st in sensor_types]
+    sensor_types_measurements: List[ChartValue] = []
+    for sensor_type in sensor_types:
+        chart_value = ChartValue(sensor_type.id, sensor_type.note, sensor_type.unit, sensor_type.max_value, sensor_type.min_value)
+        values: List[Dict] = []
+        with Session.begin() as session:
+            sensor_type_values: List[Data] = session.query(Data).filter(and_(and_(Data.timestamp >= timestamp_from, Data.timestamp <= timestamp_to), Data.type_id == sensor_type.id)).order_by(Data.timestamp.asc()).all()
+        if sensor_type_values and len(sensor_type_values) > 0:
+            for value in sensor_type_values:
+                datetime = dt.fromtimestamp(value.timestamp).isoformat()
+                value.timestamp = datetime
+                values.append(value)
+        chart_value.values = values
+        sensor_types_measurements.append(chart_value)
+    
+    return {'status': True, 'data': [e.serialize() for e in sensor_types_measurements]}, 200

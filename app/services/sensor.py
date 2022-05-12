@@ -1,3 +1,5 @@
+from app.model.area import Area
+from app.model.sector import Sector
 from app.model.sensor import Sensor
 from app import Session
 from typing import Dict, List
@@ -9,7 +11,7 @@ def remove_sensor (body:Dict):
     with Session.begin() as session:
         sensorToDel= session.query(Sensor).filter(Sensor.id==sensor_id)
     if not sensorToDel:
-        return {"ok":False, "message":"Device not found in database "} 
+        return {"ok": False, "message":"Device not found in database "}, 200
     
     with Session.begin() as session:
         session.delete(sensorToDel)
@@ -17,8 +19,14 @@ def remove_sensor (body:Dict):
     with Session.begin() as session:
         isDeleted= session.query(Sensor).filter(Sensor.id==sensor_id)
     if not isDeleted:
-        return {"ok":True, "message":"Sensor was deleted"}
-    else: return{"ok":False, "message":"Something went wrong"}
+        return {"ok": True, "message":"Sensor was deleted"}
+    else: return{"ok": False, "message":"Something went wrong"}
+
+def del_sensor(body):
+    sensor_id=body["id"]
+    with Session.begin() as session:
+        session.query(Sensor).filter(Sensor.id==sensor_id).delete()
+    return {"ok":True, "message":"Senzor s id {sensor_id} je zmazaný"}, 200
 
 #TO-DO think about what(paramaters) we need to add and to where(table)
 # doesnt work  
@@ -33,7 +41,7 @@ def add_sensor(request_data: Dict):
     with Session.begin() as session:
         session.add(sensor_to_add)
     if not sensor_to_add.id:
-        return {"ok":False, "message":"Sensor: {sensor} could not be inserted."}, 500
+        return {"ok": False, "message":"Sensor: {sensor} could not be inserted."}, 500
     
     sensor_types_to_add: List[SensorType] = []
     for type_ in sensor_types:
@@ -49,5 +57,53 @@ def add_sensor(request_data: Dict):
         return {"ok":True, "id": sensor_to_add.id, "message": "Sensor: {} with all it's types: {} successfully inserted.".format(sensor, [e['note'] for e in sensor_types ])}, 200
 
 
-def get_all_from_sector(sector_id: int):
-    pass
+def get_all_sensors_for_user(user_id: int):
+    # print(user_id)
+    with Session.begin() as session:
+        users_areas: List[Area] = session.query(Area).filter(Area.user_id==user_id).all()
+    if not users_areas:
+        return {"ok": False, "message":"You have no areas available", "data": []}, 404
+    # area_ids = [area.id for area in users_areas]
+    areas = {area.id: area.description for area in users_areas}
+    # print(areas.keys())
+    with Session.begin() as session:
+        users_sectors: List[Sector] = session.query(Sector).filter(Sector.area_id.in_(areas.keys())).all()
+    if not users_sectors:
+        return {"ok": False, "message":"You have no sectors available", "data": []}, 404
+    # sector_ids = [sector.id for sector in users_sectors]
+    sectors = {sector.id: sector.description for sector in users_sectors}
+    sector_areas = {sector.id: sector.area_id for sector in users_sectors}
+    # print(sectors.keys())
+    with Session.begin() as session:
+        users_sensors: List[Sensor] = session.query(Sensor).filter(Sensor.sector_id.in_(sectors.keys())).all()
+    if not users_sensors:
+        return {"ok": False, "message":"You have no sensors available", "data": []}, 404
+    sensor_ids = [sensor.id for sensor in users_sensors]
+    
+    # print(sensor_ids)
+    with Session.begin() as session:
+        sensor_types: List[SensorType] = session.query(SensorType).filter(SensorType.sensor_id.in_(sensor_ids)).all()
+    # print([st.note for st in sensor_types])
+
+    data = []
+    for sensor in users_sensors:
+        sensor_id = sensor.id
+        obj = {
+                # "id": sensor_id*sensor.sector_id*(sector_areas.get(sensor.sector_id, 1)), 
+                "id": sensor_id, 
+                "area": areas.get(sector_areas.get(sensor.sector_id, {}), 'N/A'),
+                "sector": sectors.get(sensor.sector_id, 'N/A'),
+                "sensor": sensor.sensor, 
+                "sensor_types": []}
+        # print([st.note for st in sensor_types])
+        for sensor_type in sensor_types.copy():
+            if not sensor_type.sensor_id == sensor_id:
+                break
+            st = sensor_types.pop(0)
+            serialized_sensor_type = SensorType.serialize(st)
+            obj["sensor_types"].append(serialized_sensor_type)
+
+        data.append(obj)
+    
+
+    return {"ok": True, "data": data}, 200

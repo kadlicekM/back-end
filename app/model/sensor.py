@@ -10,6 +10,6 @@ class Sensor(Base):
     __tablename__ = 'sensor_table'
     id = Column(Integer, primary_key=True)
     sector_id = Column(Integer)
-    sensor = Column(String(45))
+    sensor_name = Column(String(45))
 
 

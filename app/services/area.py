@@ -19,7 +19,6 @@ def add_area(user_id: int, request_data: Dict):
     with Session.begin() as session:
         session.add(area)
     if area.id:
-        print('here')
         return {"ok": True, "message":"Area inserted", "id": area.id}, 201
     else:
         return {"ok": False, "message":"Area: {description} could not be inserted"}, 500

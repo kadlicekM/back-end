@@ -1,4 +1,6 @@
-from typing import Union
+from typing import List, Union
+
+from app.model.data import Data
 
 
 class Measurement():
@@ -11,3 +13,19 @@ class Field():
     def __init__(self, fieldname: str, value: Union[str,int, float]):
         self.fieldname = fieldname
         self.value = value
+
+
+class ChartValue():
+    def __init__(self, sensor_type_id: int, note: str, unit: str, max, min):
+        self.sensor_type_id = sensor_type_id
+        self.note = note
+        self.unit = unit
+        self.max = max
+        self.min = min
+        self.values: List[Data] = []
+
+    
+    def serialize(self):
+        return {'id': self.sensor_type_id, 'note': self.note, 'unit': self.unit, 'max': self.max, 'min': self.min, "values": [Data.serialize(e) for e in self.values]}
+
+
