@@ -9,7 +9,7 @@ from app import Base
 class Data(Base):
     __tablename__ = 'data_table'
     id = Column(Integer, primary_key=True)
-    value = Column(String(50))
+    value = Column(Float(50))
     timestamp = Column(Integer)
     type_id = Column(Integer)
 

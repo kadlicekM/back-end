@@ -22,10 +22,17 @@ class ChartValue():
         self.unit = unit
         self.max = max
         self.min = min
-        self.values: List[Data] = []
+        self.values: List[ValueInner] = []
 
     
     def serialize(self):
-        return {'id': self.sensor_type_id, 'note': self.note, 'unit': self.unit, 'max': self.max, 'min': self.min, "values": [Data.serialize(e) for e in self.values]}
+        return {'id': self.sensor_type_id, 'note': self.note, 'unit': self.unit, 'max': self.max, 'min': self.min, "values": [value.serialize() for value in self.values]}
 
 
+class ValueInner():
+    def __init__(self, average: float, date_label: str) -> None:
+        self.average = average
+        self.date_label = date_label
+
+    def serialize(self):
+         return {'value': self.average, 'timestamp': self.date_label}
