@@ -11,5 +11,6 @@ class Sensor(Base):
     id = Column(Integer, primary_key=True)
     sector_id = Column(Integer)
     sensor_name = Column(String(45))
+    uid = Column(String(100))
 
 

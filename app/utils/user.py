@@ -12,10 +12,11 @@ def send_confirmation_mail(reciever_mail: str, is_activated: bool=False):
     host = config.get('host', '')
     sender_email = config.get('sender', '')
     password = config.get('password', '')
-    subject = config.get('subject', '')
+    # subject = config.get('subject', '')
+    subject = config.get('confirm_subject' if is_activated else 'delete_subject', {}).get('subject', '')
     message = config.get('confirm' if is_activated else 'cancel', {}).get('message', '')
     
-    today = dt.today().strftime('%Y-%m-%d_%H-30-00')
+    today = dt.today().isoformat()
     mail = MIMEMultipart('mixed')
     mail['From'] = sender_email
     mail['To'] = reciever_mail
@@ -24,7 +25,7 @@ def send_confirmation_mail(reciever_mail: str, is_activated: bool=False):
     mail.attach(MIMEText(message, 'html'))
 
     try:
-        smtp = smtplib.SMTP(host, port)
+        smtp = smtplib.SMTP(host, port) 
         # smtp.connect(host, port)
         smtp.starttls()
         smtp.login(sender_email, password)

@@ -15,7 +15,6 @@ class User(Base):
     email = Column(String(100))
     active = Column(Boolean)
     role = Column(String(20))
-    uid = Column(String(100))
     
     # name = Column(String(30))
 
@@ -23,8 +22,7 @@ class User(Base):
     def serialize_token_payload(user):
         return {'login': user.login, 
                 'user_id': user.id,
-                "uid": user.uid if user.uid else None,
-                "active": user.active if user.uid else False}
+                "active": user.active if hasattr(user, 'active') and user.active else False}
     
     @staticmethod
     def serialize_user(user):

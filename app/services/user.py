@@ -5,7 +5,6 @@ from flask_bcrypt import check_password_hash
 from flask_bcrypt import generate_password_hash
 from app import Session, session
 from app.utils.user import send_confirmation_mail
-import uuid
 
 
 # def auth_user(user: User):
@@ -26,7 +25,7 @@ def auth_user(login: str, password: str):
                 if not user.active:
                     return {'logged': False, 'message': 'Your account is not activated yet'}, 403
                 user_serialized = User.serialize_token_payload(user)    #serialize_login 
-                return {'logged': True, 'user': user_serialized, 'uid': user.uid}, 200
+                return {'logged': True, 'user': user_serialized}, 200
             return {'logged': False, 'message': 'Wrong credentials'}, 401
         return {'logged': False, 'message': f'User {login} does not exists'}, 401
 
@@ -45,13 +44,7 @@ def sign_up_user(request_data: Dict):
     pwd_hash = generate_password_hash(password).decode('utf-8')
     if not pwd_hash:
         return {'status': False, 'message': f'Error occured while creating new user'}, 500
-    while True:
-        uid = uuid.uuid4()
-        with session.begin():
-            user: User = session.query(User).filter(User.uid == uid).first()
-        if not user:
-            break
-    user_to_add = User(uid=uid, login=login, password=pwd_hash, 
+    user_to_add = User(login=login, password=pwd_hash, 
                        name=name, surname= surname, 
                        active=False, role= "user", 
                        email=email)

@@ -1,11 +1,14 @@
 port: 587 # For starttls
 host: smtp.gmail.com
 sender: mkapp.server@gmail.com
-# receiver_email: zyx@gmail.com
-receiver_email: matej.kadlicek1@gmail.com
 password: Diplomovapraca123
-subject: Confirmation of registration 1
+confirm_subject:
+  subject: Confirmation of registration
+delete_subject:
+  subject: Deactivation of account
+
+# subject: Confirmation of registration
 confirm:
-  message: "<h1>Confirme</h1>"
+  message: "<h1>Your accout was confirmed! Now, you can log in </h1>"
 cancel:
-  message: "<h1>Cancelled</h1>"
+  message: "<h1>Your accout was deactivated</h1>"

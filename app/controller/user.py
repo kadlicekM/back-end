@@ -10,11 +10,10 @@ def auth():
     body = request.get_json()
     result, status_code = auth_user(body['login'], body['password'])
     is_logged = result['logged']
-    uid = result['uid'] if 'uid' in result else None
     if 'user' in result:
-        access_token = create_access_token(result['user']) #create acces token with (login user_id, uid, active)
+        access_token = create_access_token(result['user']) #create acces token with (login user_id, active)
         refresh_token = create_refresh_token(result['user'])
-        return jsonify({'logged': is_logged, 'uid': uid, 'access_token': access_token, 'refresh_token': refresh_token}), status_code
+        return jsonify({'logged': is_logged, 'access_token': access_token, 'refresh_token': refresh_token}), status_code
     return jsonify({'logged': is_logged, 'message': result['message']}), status_code
     
 
@@ -25,11 +24,14 @@ def sign_up():
     return jsonify(result), status_code
 
 
-@app.route('/api/user/activate/<is_active>', methods=['POST'])
+@app.route('/api/user/activate', methods=['POST'])
 @jwt_required()
-def change_active_state(is_active: str):
+def change_active_state():
     body = request.get_json()
-    result, status_code = change_users_active_state(body['user_id'], is_active == 'true')
+    is_active = body['active']
+    # if  hasattr(body,'active') not:
+    #     return jsonify({'status': False, 'message': 'Missing "active" parameter in body...'}), 400
+    result, status_code = change_users_active_state(body['user_id'], is_active)
     return jsonify(result), status_code
 
 

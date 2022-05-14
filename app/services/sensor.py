@@ -1,9 +1,9 @@
+import uuid
 from app.model.area import Area
 from app.model.sector import Sector
 from app.model.sensor import Sensor
 from app import Session
 from typing import Dict, List
-
 from app.model.sensor_type import SensorType
 
 def remove_sensor (body:Dict):
@@ -32,10 +32,15 @@ def del_sensor(body):
 # doesnt work  
 def add_sensor(request_data: Dict):
     sector_id= request_data["sector_id"]
-    sensor= request_data["sensor"]
+    sensor_name= request_data["sensor_name"]
     sensor_types = request_data["sensor_types"]
-
-    sensor_to_add: Sensor = Sensor(sector_id=sector_id, sensor=sensor)
+    while True:
+        uid = uuid.uuid4()
+        with Session.begin() as session:
+            sensor_check: Sensor = session.query(Sensor).filter(Sensor.uid == uid).first()
+        if not sensor_check:
+            break
+    sensor_to_add: Sensor = Sensor(sector_id=sector_id, sensor_name=sensor_name, uid=uid)
     # record_for_type_table: Type = Type(note=note, unit=unit, min_value=min_value, max_value=max_value, sensor_id=sensor_id)
 
     with Session.begin() as session:
@@ -54,7 +59,7 @@ def add_sensor(request_data: Dict):
     with Session.begin() as session:
         session.add_all(sensor_types_to_add)
     if sensor_types_to_add:
-        return {"ok":True, "id": sensor_to_add.id, "message": "Sensor: {} with all it's types: {} successfully inserted.".format(sensor, [e['note'] for e in sensor_types ])}, 200
+        return {"ok":True, "id": sensor_to_add.id, "uid": uid, "message": "Sensor: {} with all it's types: {} successfully inserted.".format(sensor_name, [e['note'] for e in sensor_types ])}, 200
 
 
 def get_all_sensors_for_user(user_id: int):
