@@ -22,7 +22,7 @@ def remove_sensor (body:Dict):
         return {"ok": True, "message":"Sensor was deleted"}
     else: return{"ok": False, "message":"Something went wrong"}
 
-def del_sensor(body):
+def delete_sensor(body):
     sensor_id=body["id"]
     with Session.begin() as session:
         session.query(Sensor).filter(Sensor.id==sensor_id).delete()
@@ -43,10 +43,11 @@ def add_sensor(request_data: Dict):
     sensor_to_add: Sensor = Sensor(sector_id=sector_id, sensor_name=sensor_name, uid=uid)
     # record_for_type_table: Type = Type(note=note, unit=unit, min_value=min_value, max_value=max_value, sensor_id=sensor_id)
 
-    with Session.begin() as session:
-        session.add(sensor_to_add)
-    if not sensor_to_add.id:
-        return {"ok": False, "message":"Sensor: {sensor} could not be inserted."}, 500
+    try:
+        with Session.begin() as session:
+            session.add(sensor_to_add)
+    except Exception as e:
+        return {"ok": False, "message": f"Sensor: {sensor_name} could not be inserted."}, 500
     
     sensor_types_to_add: List[SensorType] = []
     for type_ in sensor_types:
@@ -69,10 +70,10 @@ def get_all_sensors_for_user(user_id: int):
     if not users_areas:
         return {"ok": False, "message":"You have no areas available", "data": []}, 404
     # area_ids = [area.id for area in users_areas]
-    areas = {area.id: area.description for area in users_areas}
+    areas = {area.id: area.description for area in users_areas} # 1:"house1" 2:"house2"
     # print(areas.keys())
     with Session.begin() as session:
-        users_sectors: List[Sector] = session.query(Sector).filter(Sector.area_id.in_(areas.keys())).all()
+        users_sectors: List[Sector] = session.query(Sector).filter(Sector.area_id.in_(areas.keys())).all() #arei id musí mať nejakú hodnotu z in_() ... ak má tak všetky takéto hodnoty vyhovujú filteru
     if not users_sectors:
         return {"ok": False, "message":"You have no sectors available", "data": []}, 404
     # sector_ids = [sector.id for sector in users_sectors]
@@ -95,16 +96,16 @@ def get_all_sensors_for_user(user_id: int):
         sensor_id = sensor.id
         obj = {
                 # "id": sensor_id*sensor.sector_id*(sector_areas.get(sensor.sector_id, 1)), 
-                "id": sensor_id, 
-                "area": areas.get(sector_areas.get(sensor.sector_id, {}), 'N/A'),
+                "id_sensor": sensor_id, 
+                "area": areas.get(sector_areas.get(sensor.sector_id, {}), 'N/A'), #N/A vráti keď nič nenájde v areách a prázdny objekt ked nič nenájde v sektoroch , aby to nepadlo 
                 "sector": sectors.get(sensor.sector_id, 'N/A'),
-                "sensor": sensor.sensor, 
+                "sensor": sensor.sensor_name, 
                 "sensor_types": []}
         # print([st.note for st in sensor_types])
         for sensor_type in sensor_types.copy():
             if not sensor_type.sensor_id == sensor_id:
                 break
-            st = sensor_types.pop(0)
+            st = sensor_types.pop(0) #nemá tu byť sensor_type?
             serialized_sensor_type = SensorType.serialize(st)
             obj["sensor_types"].append(serialized_sensor_type)
 

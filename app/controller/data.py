@@ -5,14 +5,14 @@ from typing import Dict
 from app import app
 from flask import jsonify, request
 from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token
-from app.services.data import get_chart_data, insert_data
+from app.services.data import get_chart_data, add_data
 from app.model.user import User
 
 
 @app.route('/api/data/add', methods=['POST'])
-def add_data():
+def insert_data():
     body = request.get_json()
-    result, status_code = insert_data(body)
+    result, status_code = add_data(body)
     return jsonify(result), status_code
 
 

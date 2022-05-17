@@ -17,6 +17,6 @@ class Area(Base):
     def serialize_area(area):
         return {"description":area.description, "id": area.id}
 
-    @staticmethod
+    @staticmethod # nepoužité 
     def customize_area(area):
         return {"description":area.description}
